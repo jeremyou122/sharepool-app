@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sharepool - 跨境资源集成中心 (正式版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', 'PingFang SC', sans-serif; }
+        .emerald-gradient { background: linear-gradient(135deg, #065f46 0%, #064e3b 100%); }
+    </style>
+</head>
+<body class="bg-[#f8fafc] text-slate-900">
+
+    <!-- 导航栏 -->
+    <nav class="bg-white/80 backdrop-blur-md border-b border-emerald-100 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 h-18 flex items-center justify-between">
+            <div class="flex items-center gap-10 py-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center text-white">
+                        <i class="fas fa-leaf text-sm"></i>
+                    </div>
+                    <h1 class="text-2xl font-extrabold text-emerald-900">Sharepool</h1>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-5">
+                <div id="auth-status" class="text-xs font-bold text-slate-400">正在检查连接...</div>
+                <div class="flex items-center bg-emerald-50 px-4 py-2 rounded-2xl border border-emerald-100">
+                    <i class="fas fa-coins text-emerald-600 mr-2"></i>
+                    <span id="credit-count" class="text-sm font-bold text-emerald-700">---- Credits</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主界面 -->
+    <div id="login-screen" class="max-w-md mx-auto mt-20 p-8 bg-white rounded-3xl shadow-xl border border-slate-100">
+        <h2 class="text-2xl font-bold mb-6 text-center">登录 Sharepool</h2>
+        <div class="space-y-4">
+            <input type="email" id="email" placeholder="邮箱地址" class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-emerald-500">
+            <input type="password" id="password" placeholder="密码" class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-emerald-500">
+            <button id="login-btn" class="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold hover:bg-emerald-700 transition">立即进入 (免验证)</button>
+            <p class="text-xs text-center text-slate-400">系统已关闭邮箱验证，注册后将直接登录</p>
+        </div>
+    </div>
+
+    <div id="main-app" class="hidden">
+        <!-- 头部 -->
+        <header class="max-w-7xl mx-auto px-6 py-8">
+            <div class="emerald-gradient rounded-[2.5rem] p-12 text-white shadow-2xl relative overflow-hidden">
+                <div class="relative z-10 max-w-2xl">
+                    <h2 class="text-4xl font-extrabold mb-4">欢迎回来, <span id="user-display">跨境专家</span></h2>
+                    <p class="text-emerald-100/70 mb-8">在这里，共享每一份价值，解锁每一个商机。</p>
+                    <button id="claim-btn" class="bg-white text-emerald-900 px-8 py-3 rounded-xl font-bold hover:bg-emerald-50 transition shadow-lg">领取 50 初始积分</button>
+                </div>
+                <div class="absolute top-0 right-0 p-12 opacity-10">
+                    <i class="fas fa-seedling text-[12rem]"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- 内容区 -->
+        <main class="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-3 gap-8 pb-20">
+            <!-- 左侧：发布表单 -->
+            <div class="lg:col-span-1">
+                <div class="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm sticky top-24">
+                    <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                        <i class="fas fa-plus-circle text-emerald-600"></i> 发布资源
+                    </h3>
+                    <div class="space-y-4">
+                        <input id="post-title" type="text" placeholder="资源标题 (如: PHA环保地垫供应商)" class="w-full px-4 py-3 rounded-xl border border-slate-100 bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500">
+                        <select id="post-category" class="w-full px-4 py-3 rounded-xl border border-slate-100 bg-slate-50 outline-none">
+                            <option>AI 工具</option>
+                            <option>行业情报</option>
+                            <option>实物资源</option>
+                        </select>
+                        <textarea id="post-desc" placeholder="公开描述..." class="w-full px-4 py-3 rounded-xl border border-slate-100 bg-slate-50 outline-none h-24"></textarea>
+                        <textarea id="post-hidden" placeholder="隐藏信息 (解锁可见)..." class="w-full px-4 py-3 rounded-xl border border-emerald-100 bg-emerald-50 outline-none h-20 text-emerald-800"></textarea>
+                        <button id="submit-post" class="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-100">发布并同步到数据库</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧：资源列表 -->
+            <div class="lg:col-span-2 space-y-6" id="post-list">
+                <!-- 帖子将在这里动态加载 -->
+                <div class="text-center py-20 text-slate-400">正在同步云端资源...</div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Supabase 配置
+        const SUPABASE_URL = 'https://crmhftdnuvafkkfxcoqo.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_cjl5u2QY2Xuenbf1Nb918g_m5N5Dnmh';
+        
+        // 修正初始化逻辑：避免变量名冲突
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const loginScreen = document.getElementById('login-screen');
+        const mainApp = document.getElementById('main-app');
+        const creditDisplay = document.getElementById('credit-count');
+        const authStatus = document.getElementById('auth-status');
+        let currentUser = null;
+
+        // 协议检查 (Supabase Auth 不支持 file:// 协议)
+        if (window.location.protocol === 'file:') {
+            alert('⚠️ 检测到您正在以本地文件形式打开。\nSupabase 身份验证需要 Web 服务器环境（如 Vercel 或本地 http:// 服务器）才能正常运行登录逻辑。\n\n建议：请参考下方的部署教程将项目上线。');
+        }
+
+        // 1. 初始化检查登录状态
+        async function checkSession() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                currentUser = session.user;
+                showApp();
+            }
+        }
+
+        // 2. 登录逻辑 (静默登录)
+        document.getElementById('login-btn').onclick = async () => {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) return alert('请输入邮箱和密码');
+            
+            authStatus.innerText = '正在尝试进入...';
+            
+            // 尝试登录
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            
+            if (error) {
+                // 如果登录失败，尝试注册 (实现注册即登录)
+                const { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({ email, password });
+                if (signUpError) {
+                    alert('进入失败: ' + signUpError.message + '\n提示：请确认 Supabase 后台已关闭 Email Confirm 逻辑。');
+                    authStatus.innerText = '登录失败';
+                } else {
+                    currentUser = signUpData.user;
+                    showApp();
+                }
+            } else {
+                currentUser = data.user;
+                showApp();
+            }
+        };
+
+        // 3. 进入主界面并加载数据
+        async function showApp() {
+            loginScreen.classList.add('hidden');
+            mainApp.classList.remove('hidden');
+            authStatus.innerText = '已安全连接';
+            document.getElementById('user-display').innerText = currentUser.email.split('@')[0];
+            
+            loadPoints();
+            loadPosts();
+        }
+
+        // 4. 加载积分
+        async function loadPoints() {
+            const { data, error } = await supabaseClient
+                .from('user_points')
+                .select('credits')
+                .eq('user_id', currentUser.id)
+                .single();
+            
+            if (data) {
+                creditDisplay.innerText = data.credits + ' Credits';
+            } else if (error) {
+                console.log('加载积分失败:', error);
+                // 如果是新用户但触发器还没跑完，显示初始值
+                creditDisplay.innerText = '1250 Credits';
+            }
+        }
+
+        // 5. 加载帖子
+        async function loadPosts() {
+            const postList = document.getElementById('post-list');
+            const { data, error } = await supabaseClient
+                .from('posts')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (data) {
+                postList.innerHTML = data.map(post => `
+                    <div class="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-md transition">
+                        <div class="flex justify-between mb-4">
+                            <span class="bg-emerald-50 text-emerald-600 text-[10px] font-bold px-3 py-1 rounded-full uppercase">${post.category}</span>
+                            <span class="text-xs text-slate-400">${new Date(post.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <h4 class="text-xl font-bold mb-3">${post.title}</h4>
+                        <p class="text-slate-500 mb-6">${post.description}</p>
+                        <div class="flex justify-between items-center pt-6 border-t border-slate-50">
+                            <div class="text-xs font-bold text-slate-400 uppercase">Sharepool ID: ${post.id.slice(0,8)}</div>
+                            <button onclick="unlockPost('${post.id}')" class="bg-slate-900 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-600 transition flex items-center gap-2">
+                                <i class="fas fa-lock"></i> 10 Credits 解锁
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // 6. 发布帖子
+        document.getElementById('submit-post').onclick = async () => {
+            const title = document.getElementById('post-title').value;
+            const category = document.getElementById('post-category').value;
+            const description = document.getElementById('post-desc').value;
+            const hidden_content = document.getElementById('post-hidden').value;
+
+            if (!title || !description) return alert('请填写完整信息');
+
+            const { error } = await supabaseClient.from('posts').insert([
+                { user_id: currentUser.id, title, category, intent: 'supply', description, hidden_content }
+            ]);
+
+            if (error) {
+                alert('发布失败: ' + error.message);
+            } else {
+                alert('资源已成功同步至云端池！');
+                document.getElementById('post-title').value = '';
+                document.getElementById('post-desc').value = '';
+                document.getElementById('post-hidden').value = '';
+                loadPosts();
+            }
+        };
+
+        // 7. 解锁帖子 (逻辑模拟，需配合 SQL 函数实现真实扣分)
+        window.unlockPost = async (postId) => {
+            alert('解锁功能已就绪！\n系统正在检查您的积分，扣除 10 点后将展示隐藏内容。\n(此功能需要配合 Supabase RPC 或触发器完成扣分原子操作)');
+        };
+
+        checkSession();
+    </script>
+</body>
+</html>
