@@ -5,211 +5,183 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sharepool - 跨境资源集成中心</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', 'PingFang SC', sans-serif; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .emerald-gradient { background: linear-gradient(135deg, #065f46 0%, #064e3b 100%); }
-        .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); }
     </style>
 </head>
 <body class="bg-[#f8fafc] text-slate-900">
 
-    <!-- 顶部导航 -->
+    <!-- 导航栏 -->
     <nav class="bg-white/80 backdrop-blur-md border-b border-emerald-100 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-6 h-18 flex items-center justify-between">
-            <div class="flex items-center gap-10 py-4">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center text-white">
-                        <i class="fas fa-leaf text-sm"></i>
-                    </div>
-                    <h1 class="text-2xl font-extrabold text-emerald-900 tracking-tight">Sharepool</h1>
+        <div class="max-w-7xl mx-auto px-6 h-18 flex items-center justify-between py-4">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center text-white">
+                    <i class="fas fa-leaf text-sm"></i>
                 </div>
-                <div class="hidden md:flex gap-8 text-sm font-semibold text-slate-500">
-                    <a href="#" class="text-emerald-600 border-b-2 border-emerald-600 pb-1">资源池</a>
-                    <a href="#" class="hover:text-emerald-600 transition">跨境情报</a>
-                    <a href="#" class="hover:text-emerald-600 transition">积分商城</a>
-                </div>
+                <h1 class="text-2xl font-extrabold text-emerald-900">Sharepool</h1>
             </div>
-            
-            <div class="flex items-center gap-5">
-                <div class="flex items-center bg-emerald-50 px-4 py-2 rounded-2xl border border-emerald-100">
+            <div class="flex items-center gap-4">
+                <div id="user-points-display" class="hidden items-center bg-emerald-50 px-4 py-2 rounded-2xl border border-emerald-100">
                     <i class="fas fa-coins text-emerald-600 mr-2"></i>
                     <span id="credit-count" class="text-sm font-bold text-emerald-700">1250 Credits</span>
                 </div>
-                <div class="flex items-center gap-3 pl-5 border-l border-slate-200">
-                    <div class="text-right hidden sm:block">
-                        <p class="text-xs font-extrabold text-slate-800">Sharepool User</p>
-                        <p class="text-[10px] text-emerald-600 flex items-center justify-end font-bold uppercase tracking-wider">
-                            <i class="fas fa-check-double mr-1 text-[8px]"></i> Verified
-                        </p>
-                    </div>
-                    <div class="w-10 h-10 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-400 border border-slate-200">
-                        <i class="fas fa-user-tie"></i>
-                    </div>
-                </div>
+                <button id="logout-btn" class="hidden text-xs text-slate-400 hover:text-red-500 font-bold uppercase tracking-widest">退出</button>
             </div>
         </div>
     </nav>
 
-    <!-- 英雄区：新手激励 -->
-    <header class="max-w-7xl mx-auto px-6 py-10">
-        <div class="emerald-gradient rounded-[3rem] overflow-hidden flex flex-col lg:flex-row shadow-2xl relative">
-            <div class="absolute top-0 right-0 w-96 h-96 bg-emerald-400/10 blur-[100px] rounded-full"></div>
-            <div class="lg:w-3/5 p-12 lg:p-20 space-y-8 relative z-10">
-                <div class="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-300 px-4 py-1.5 rounded-full text-xs font-bold border border-emerald-500/30 uppercase tracking-widest">
-                    <i class="fas fa-sparkles"></i> Newbie Package
-                </div>
-                <h2 class="text-5xl lg:text-6xl font-extrabold text-white leading-[1.1]">
-                    探索跨境 <br>
-                    <span class="text-emerald-400">获客黑科技</span>
-                </h2>
-                <p class="text-emerald-100/70 text-xl max-w-lg leading-relaxed">
-                    加入 Sharepool 资源共享圈，观看 AI 获客 SOP，立领 50 初始积分奖励。
-                </p>
-                <div class="pt-4 flex flex-col sm:flex-row gap-4">
-                    <button id="claim-btn" class="bg-white text-emerald-900 px-10 py-5 rounded-2xl font-bold text-lg hover:bg-emerald-50 transition transform active:scale-95 shadow-xl flex items-center justify-center gap-3">
-                        开启学习之旅 (+50 积分)
-                        <i class="fas fa-circle-play text-emerald-600"></i>
-                    </button>
-                    <div id="claimed-msg" class="hidden flex items-center gap-3 bg-emerald-500/20 text-emerald-300 px-6 py-4 rounded-2xl border border-emerald-500/30 font-bold">
-                        <i class="fas fa-check-circle"></i> 奖励已入账
-                    </div>
-                </div>
+    <!-- 1. 登录/注册界面 -->
+    <div id="login-screen" class="max-w-md mx-auto mt-20 p-10 bg-white rounded-[2.5rem] shadow-2xl border border-slate-100">
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-shield-halved text-2xl"></i>
             </div>
-            <div class="lg:w-2/5 bg-slate-800/50 backdrop-blur relative group cursor-pointer border-l border-white/5">
-                <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=1200" 
-                     class="w-full h-full object-cover opacity-60 group-hover:scale-105 transition duration-1000" alt="Training">
-                <div class="absolute inset-0 flex items-center justify-center">
-                    <div class="w-24 h-24 bg-white/10 backdrop-blur-xl rounded-full flex items-center justify-center text-white border border-white/20 shadow-2xl group-hover:scale-110 transition duration-500">
-                        <i class="fas fa-play text-3xl ml-1"></i>
-                    </div>
-                </div>
-            </div>
+            <h2 class="text-3xl font-black text-slate-900">欢迎进入资源池</h2>
+            <p class="text-slate-400 mt-2">请输入邮箱和密码，新用户将自动注册</p>
         </div>
-    </header>
-
-    <!-- 资源大厅 -->
-    <main class="max-w-7xl mx-auto px-6 mb-24">
-        <div class="flex flex-col md:flex-row justify-between items-end md:items-center mb-12 gap-6">
-            <div>
-                <h3 class="text-3xl font-extrabold text-slate-900 tracking-tight">资源集散池</h3>
-                <p class="text-slate-500 mt-2">Share & Grow: 连接全球优质跨境 B2B 资源</p>
-            </div>
-            
-            <div class="flex flex-wrap gap-4">
-                <div class="bg-white p-1.5 rounded-2xl border border-slate-200 flex shadow-sm">
-                    <button class="px-6 py-2.5 text-sm font-bold bg-emerald-600 text-white rounded-xl shadow-lg shadow-emerald-200">我有资源</button>
-                    <button class="px-6 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50 rounded-xl transition">我有需求</button>
-                </div>
-                <div class="bg-white p-1.5 rounded-2xl border border-slate-200 flex shadow-sm">
-                    <button class="px-6 py-2.5 text-sm font-bold text-emerald-600 bg-emerald-50 rounded-xl">全部</button>
-                    <button class="px-6 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50 rounded-xl">AI 工具</button>
-                    <button class="px-6 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50 rounded-xl">行业情报</button>
-                </div>
-            </div>
+        <div class="space-y-4">
+            <input type="email" id="email" placeholder="您的邮箱" class="w-full px-5 py-4 rounded-2xl border border-slate-100 bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500 transition">
+            <input type="password" id="password" placeholder="设置密码" class="w-full px-5 py-4 rounded-2xl border border-slate-100 bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500 transition">
+            <button id="auth-btn" class="w-full bg-emerald-600 text-white py-5 rounded-2xl font-bold text-lg hover:bg-emerald-700 transition shadow-lg shadow-emerald-100">立即进入 Sharepool</button>
+            <p class="text-[10px] text-center text-slate-400 uppercase font-bold tracking-widest">无需邮箱验证 · 注册即登录</p>
         </div>
-
-        <!-- Instagram 风格卡片流 -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-10">
-            
-            <!-- 卡片 1: AI SOP -->
-            <div class="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgb(0,0,0,0.08)] transition-all duration-500 group">
-                <div class="flex justify-between items-center mb-8">
-                    <div class="flex gap-2">
-                        <span class="bg-emerald-50 text-emerald-700 text-[10px] font-extrabold px-4 py-1.5 rounded-full uppercase tracking-wider border border-emerald-100">AI 获客 SOP</span>
-                    </div>
-                    <span class="text-xs font-bold text-slate-400 flex items-center gap-1.5">
-                        <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                        New Update
-                    </span>
-                </div>
-                <h4 class="text-2xl font-extrabold mb-4 group-hover:text-emerald-700 transition duration-300">PHA 环保包装：欧洲精准买家挖掘指令集</h4>
-                <p class="text-slate-500 leading-relaxed mb-10 text-lg">
-                    针对欧洲 ESG 合规要求，利用 ChatGPT + Google Maps 自动化提取 PHA 包装潜在买家名单，包含测试有效的开发信模板。
-                </p>
-                <div class="flex items-center justify-between pt-8 border-t border-slate-50">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center font-black text-emerald-600 border border-emerald-100">S</div>
-                        <div>
-                            <p class="text-sm font-extrabold text-slate-800">Sharepool Expert</p>
-                            <div class="flex items-center text-[10px] font-bold text-amber-500">
-                                <i class="fas fa-star mr-1"></i> Trust Score: 99
-                            </div>
-                        </div>
-                    </div>
-                    <button class="unlock-btn bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold text-sm hover:bg-emerald-600 transition-all duration-300 transform active:scale-95 flex items-center gap-3 shadow-lg">
-                        <i class="fas fa-lock-open text-xs"></i>
-                        10 Credits 解锁
-                    </button>
-                </div>
-            </div>
-
-            <!-- 卡片 2: ESG 情报 -->
-            <div class="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgb(0,0,0,0.08)] transition-all duration-500 group">
-                <div class="flex justify-between items-center mb-8">
-                    <div class="flex gap-2">
-                        <span class="bg-blue-50 text-blue-700 text-[10px] font-extrabold px-4 py-1.5 rounded-full uppercase tracking-wider border border-blue-100">ESG 合规咨询</span>
-                    </div>
-                    <span class="text-xs font-bold text-slate-400">2小时前</span>
-                </div>
-                <h4 class="text-2xl font-extrabold mb-4 group-hover:text-blue-700 transition duration-300">2024 欧盟最新塑料税政策深度解读报告</h4>
-                <p class="text-slate-500 leading-relaxed mb-10 text-lg">
-                    详细分析法国及德国对不可降解包装的惩罚性收费标准，为出口企业提供 PHA/PLA 材料替换建议及合规路径。
-                </p>
-                <div class="flex items-center justify-between pt-8 border-t border-slate-50">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center font-black text-blue-600 border border-blue-100">E</div>
-                        <div>
-                            <p class="text-sm font-extrabold text-slate-800">ESG Consultant</p>
-                            <div class="flex items-center text-[10px] font-bold text-amber-500">
-                                <i class="fas fa-star mr-1"></i> Trust Score: 95
-                            </div>
-                        </div>
-                    </div>
-                    <button class="unlock-btn bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold text-sm hover:bg-emerald-600 transition-all duration-300 transform active:scale-95 flex items-center gap-3 shadow-lg">
-                        <i class="fas fa-lock-open text-xs"></i>
-                        10 Credits 解锁
-                    </button>
-                </div>
-            </div>
-
-        </div>
-    </main>
-
-    <!-- 悬浮发布按钮 -->
-    <div class="fixed bottom-10 right-10">
-        <button class="w-16 h-16 bg-emerald-600 text-white rounded-full shadow-2xl shadow-emerald-300 flex items-center justify-center hover:bg-emerald-700 hover:rotate-90 transition duration-500 group relative">
-            <i class="fas fa-plus text-xl"></i>
-            <span class="absolute right-full mr-4 bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap opacity-0 group-hover:opacity-100 transition duration-300 pointer-events-none shadow-xl">发布资源 / 需求</span>
-        </button>
     </div>
 
-    <!-- 交互交互脚本 -->
-    <script>
-        let credits = 1250;
-        const creditDisplay = document.getElementById('credit-count');
-        const claimBtn = document.getElementById('claim-btn');
-        const claimedMsg = document.getElementById('claimed-msg');
+    <!-- 2. 主程序界面 (默认隐藏) -->
+    <div id="main-app" class="hidden">
+        <header class="max-w-7xl mx-auto px-6 py-10">
+            <div class="emerald-gradient rounded-[3rem] p-12 lg:p-20 text-white relative overflow-hidden shadow-2xl">
+                <div class="relative z-10">
+                    <h2 class="text-5xl font-black mb-4 tracking-tight">你好, <span id="user-email-name" class="text-emerald-300">Sharepooler</span></h2>
+                    <p class="text-emerald-100/70 text-xl max-w-lg mb-10 leading-relaxed">您的专属跨境资源池已就绪。发布资源或点击下方按钮，开始您的获客之旅。</p>
+                    <button class="bg-white text-emerald-900 px-10 py-4 rounded-2xl font-bold text-lg hover:bg-emerald-50 shadow-xl transition">点击学习 AI 获客 SOP (+50 积分)</button>
+                </div>
+                <div class="absolute top-0 right-0 p-20 opacity-10 rotate-12">
+                    <i class="fas fa-globe-asia text-[15rem]"></i>
+                </div>
+            </div>
+        </header>
 
-        claimBtn.onclick = () => {
-            credits += 50;
-            creditDisplay.innerText = credits + ' Credits';
-            claimBtn.classList.add('hidden');
-            claimedMsg.classList.remove('hidden');
+        <main class="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-3 gap-10 pb-32">
+            <!-- 发布资源 -->
+            <div class="lg:col-span-1">
+                <div class="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm sticky top-28">
+                    <h3 class="text-2xl font-bold mb-8 text-slate-900 tracking-tight">发布新资源</h3>
+                    <div class="space-y-5">
+                        <input id="p-title" type="text" placeholder="资源标题" class="w-full px-5 py-4 rounded-2xl border border-slate-50 bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500">
+                        <select id="p-category" class="w-full px-5 py-4 rounded-2xl border border-slate-50 bg-slate-50 outline-none">
+                            <option>AI 工具</option>
+                            <option>行业情报</option>
+                            <option>实物资源</option>
+                        </select>
+                        <textarea id="p-desc" placeholder="公开描述..." class="w-full px-5 py-4 rounded-2xl border border-slate-50 bg-slate-50 outline-none h-32"></textarea>
+                        <textarea id="p-hidden" placeholder="隐藏信息 (解锁可见)..." class="w-full px-5 py-4 rounded-2xl border border-emerald-50 bg-emerald-50 outline-none h-24 text-emerald-800 font-medium"></textarea>
+                        <button id="p-submit" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-bold text-lg hover:bg-emerald-600 transition shadow-xl">发布并同步到云端</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 资源流 -->
+            <div class="lg:col-span-2 space-y-8" id="post-container">
+                <div class="text-center py-20 text-slate-300 font-bold uppercase tracking-widest">正在同步云端资源池...</div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Supabase 初始化 (已填入您的 Key)
+        const S_URL = 'https://crmhftdnuvafkkfxcoqo.supabase.co';
+        const S_KEY = 'sb_publishable_cjl5u2QY2Xuenbf1Nb918g_m5N5Dnmh';
+        const supabaseClient = supabase.createClient(S_URL, S_KEY);
+
+        const loginBox = document.getElementById('login-screen');
+        const mainApp = document.getElementById('main-app');
+        const pointsBox = document.getElementById('user-points-display');
+        const logoutBtn = document.getElementById('logout-btn');
+        let user = null;
+
+        // 1. 自动检查登录
+        async function init() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                user = session.user;
+                renderApp();
+            }
+        }
+
+        // 2. 登录/注册
+        document.getElementById('auth-btn').onclick = async () => {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            if(!email || !password) return alert('请输入完整信息');
+
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) {
+                const { data: sData, error: sError } = await supabaseClient.auth.signUp({ email, password });
+                if (sError) alert(sError.message);
+                else { user = sData.user; renderApp(); }
+            } else { user = data.user; renderApp(); }
         };
 
-        document.querySelectorAll('.unlock-btn').forEach(btn => {
-            btn.onclick = () => {
-                if (confirm('确认消耗 10 积分获取 Sharepool 核心隐藏资源？')) {
-                    credits -= 10;
-                    creditDisplay.innerText = credits + ' Credits';
-                    btn.innerHTML = '<i class="fas fa-check-circle"></i> 已获永久访问权限';
-                    btn.classList.replace('bg-slate-900', 'bg-emerald-500');
-                    btn.disabled = true;
-                }
-            };
-        });
+        // 3. 渲染主页面
+        function renderApp() {
+            loginBox.classList.add('hidden');
+            mainApp.classList.remove('hidden');
+            pointsBox.classList.remove('hidden');
+            logoutBtn.classList.remove('hidden');
+            document.getElementById('user-email-name').innerText = user.email.split('@')[0];
+            fetchPosts();
+            fetchCredits();
+        }
+
+        // 4. 获取积分
+        async function fetchCredits() {
+            const { data } = await supabaseClient.from('user_points').select('credits').eq('user_id', user.id).single();
+            if (data) document.getElementById('credit-count').innerText = data.credits + ' Credits';
+        }
+
+        // 5. 获取帖子
+        async function fetchPosts() {
+            const container = document.getElementById('post-container');
+            const { data } = await supabaseClient.from('posts').select('*').order('created_at', { ascending: false });
+            if (data) {
+                container.innerHTML = data.map(p => `
+                    <div class="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-500 group">
+                        <div class="flex justify-between mb-6">
+                            <span class="bg-emerald-50 text-emerald-600 text-[10px] font-black px-4 py-1.5 rounded-full uppercase border border-emerald-100">${p.category}</span>
+                            <span class="text-xs font-bold text-slate-300 uppercase">${new Date(p.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <h4 class="text-2xl font-black mb-4 text-slate-900 group-hover:text-emerald-700 transition">${p.title}</h4>
+                        <p class="text-slate-500 leading-relaxed mb-10 text-lg">${p.description}</p>
+                        <div class="flex justify-between items-center pt-8 border-t border-slate-50">
+                            <div class="text-[10px] font-black text-slate-300 uppercase tracking-widest">ID: ${p.id.slice(0,8)}</div>
+                            <button class="bg-slate-900 text-white px-8 py-3.5 rounded-2xl font-bold text-sm hover:bg-emerald-600 transition shadow-lg">10 Credits 解锁</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // 6. 发布
+        document.getElementById('p-submit').onclick = async () => {
+            const title = document.getElementById('p-title').value;
+            const category = document.getElementById('p-category').value;
+            const description = document.getElementById('p-desc').value;
+            const hidden_content = document.getElementById('p-hidden').value;
+
+            const { error } = await supabaseClient.from('posts').insert([{ user_id: user.id, title, category, description, hidden_content, intent: 'supply' }]);
+            if (error) alert(error.message);
+            else { alert('资源已同步至云端池！'); location.reload(); }
+        };
+
+        // 7. 退出
+        logoutBtn.onclick = async () => { await supabaseClient.auth.signOut(); location.reload(); };
+
+        init();
     </script>
 </body>
 </html>
