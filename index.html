@@ -1,12 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sharepool - 全球优质 B2B 跨境资源池</title>
-    <meta name="description" content="Sharepool 是一个面向跨境 B2B 领域的资源集成中心。用户通过分享获客技巧、行业情报换取积分，解锁高价值商机。">
-    <meta name="keywords" content="外贸获客, B2B资源, 跨境电商, 积分交换, 环保包装, ESG合规">
+    <title>Sharepool - B2B 跨境资源整合中心</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -14,41 +11,42 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', 'PingFang SC', sans-serif; -webkit-tap-highlight-color: transparent; }
-        .emerald-gradient { background: linear-gradient(135deg, #065f46 0%, #059669 100%); }
-        .glass-nav { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(16, 185, 129, 0.1); }
-        .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+        .emerald-gradient { background: linear-gradient(135deg, #064e3b 0%, #059669 100%); }
+        .glass-nav { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
+        .blur-info { filter: blur(6px); user-select: none; pointer-events: none; }
+        .card-anim { transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); }
+        .card-anim:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
+        .view-section { display: none; }
+        .view-active { display: block; animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .modal-active { overflow: hidden; }
-        .card-anim { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        .card-anim:active { transform: scale(0.96); }
-        .blur-info { filter: blur(4px); user-select: none; pointer-events: none; }
+        footer { background: #0c1a16; }
     </style>
 </head>
-<body class="bg-[#fcfdfd] text-slate-900 min-h-screen">
+<body class="bg-[#f8faf9] text-slate-900 min-h-screen flex flex-col">
 
-    <!-- 1. 顶部全局导航 -->
-    <nav class="glass-nav sticky top-0 z-[60] w-full">
+    <!-- 1. 全局顶部导航 -->
+    <nav class="glass-nav sticky top-0 z-[100] w-full">
         <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-2 cursor-pointer" onclick="window.location.reload()">
-                <div class="w-8 h-8 bg-emerald-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-200">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="switchView('home')">
+                <div class="w-8 h-8 bg-emerald-600 rounded-xl flex items-center justify-center text-white shadow-lg">
                     <i class="fas fa-leaf text-sm"></i>
                 </div>
-                <h1 class="text-xl font-extrabold text-emerald-900 tracking-tight">Sharepool</h1>
+                <h1 class="text-xl font-extrabold text-emerald-950 tracking-tight">Sharepool</h1>
             </div>
             
             <div class="flex items-center gap-3">
-                <!-- 游客显示：登录按钮 -->
-                <button id="guest-login-btn" onclick="showLoginModal()" class="flex items-center gap-2 px-3 md:px-4 py-1.5 rounded-full bg-emerald-600 text-white text-[10px] md:text-xs font-bold hover:bg-emerald-700 transition shadow-lg shadow-emerald-100">
-                    <i class="fas fa-sign-in-alt"></i> 登录/注册
+                <button id="guest-login-btn" onclick="showLoginModal()" class="px-5 py-2 rounded-full bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-100">
+                    登录 / 注册
                 </button>
-
-                <!-- 积分显示区 -->
-                <div id="points-pill" class="hidden flex items-center bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 cursor-pointer hover:bg-emerald-100 transition" onclick="toggleHistory()">
-                    <i class="fas fa-bolt text-emerald-600 mr-2 text-xs"></i>
-                    <span id="credit-count" class="text-sm font-black text-emerald-700">----</span>
-                </div>
-                <div id="user-avatar" class="hidden w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200 cursor-pointer overflow-hidden" onclick="toggleProfile()">
-                    <i class="fas fa-user text-slate-400 text-xs"></i>
+                <div id="user-info-pill" class="hidden flex items-center gap-3">
+                    <div class="flex items-center bg-white px-3 py-1.5 rounded-full border border-slate-100 shadow-sm cursor-pointer" onclick="switchView('profile')">
+                        <i class="fas fa-bolt text-emerald-500 mr-2 text-xs"></i>
+                        <span id="nav-credit-count" class="text-sm font-black text-slate-700">----</span>
+                    </div>
+                    <div class="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center border border-slate-200 cursor-pointer overflow-hidden shadow-sm" onclick="switchView('profile')">
+                        <i class="fas fa-user text-slate-400 text-xs"></i>
+                    </div>
                 </div>
             </div>
         </div>
@@ -56,505 +54,319 @@
 
     <!-- 2. 全局登录弹窗 -->
     <div id="login-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center px-6">
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onclick="hideLoginModal()"></div>
-        <div id="login-screen-box" class="relative max-w-md w-full p-8 px-6 sm:px-10 bg-white rounded-[3rem] shadow-2xl border border-emerald-50 transition-all scale-95 opacity-0">
-            <button onclick="hideLoginModal()" class="absolute top-6 right-6 text-slate-300 hover:text-slate-500 transition">
+        <div class="absolute inset-0 bg-slate-950/40 backdrop-blur-sm" onclick="hideLoginModal()"></div>
+        <div id="login-screen-box" class="relative max-w-md w-full p-10 bg-white rounded-[3rem] shadow-2xl transition-all scale-95 opacity-0">
+            <button onclick="hideLoginModal()" class="absolute top-8 right-8 text-slate-300 hover:text-slate-500 transition">
                 <i class="fas fa-times text-xl"></i>
             </button>
-            <div class="text-center mb-10">
-                <div class="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner">
-                    <i class="fas fa-seedling text-3xl"></i>
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-seedling text-2xl"></i>
                 </div>
-                <h2 class="text-3xl font-black text-slate-900 mb-2 tracking-tight">跨境资源池</h2>
-                <p class="text-slate-400 text-sm">注册即领 1250 初始积分 · 开启获客黑科技</p>
+                <h2 class="text-3xl font-black tracking-tight">进入 Sharepool</h2>
+                <p class="text-slate-400 text-sm mt-2">注册即领 1250 初始积分</p>
             </div>
             <div class="space-y-4">
-                <div class="relative">
-                    <i class="fas fa-envelope absolute left-4 top-4 text-slate-300"></i>
-                    <input type="email" id="email" placeholder="工作邮箱" class="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500 transition shadow-sm">
-                </div>
-                <div class="relative">
-                    <i class="fas fa-key absolute left-4 top-4 text-slate-300"></i>
-                    <input type="password" id="password" placeholder="设置密码" class="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500 transition shadow-sm">
-                </div>
-                <button id="auth-btn" class="w-full bg-emerald-600 text-white py-5 rounded-[1.5rem] font-bold text-lg hover:bg-emerald-700 active:scale-95 transition shadow-xl shadow-emerald-100 flex items-center justify-center gap-2">
-                    <span>立即进入池中</span>
-                    <i class="fas fa-chevron-right text-xs opacity-50"></i>
-                </button>
-                <p class="text-[10px] text-center text-slate-300 uppercase font-black tracking-[0.2em]">Silent Login • No Link Required</p>
+                <input type="email" id="login-email" placeholder="工作邮箱" class="w-full px-6 py-4 rounded-2xl bg-slate-50 border-none outline-none focus:ring-2 focus:ring-emerald-500 transition font-medium">
+                <input type="password" id="login-password" placeholder="访问密码" class="w-full px-6 py-4 rounded-2xl bg-slate-50 border-none outline-none focus:ring-2 focus:ring-emerald-500 transition font-medium">
+                <button id="auth-btn" class="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black text-lg hover:bg-emerald-700 shadow-xl shadow-emerald-100 active:scale-95 transition">立即进入</button>
             </div>
         </div>
     </div>
 
-    <!-- 3. 主界面内容 -->
-    <div id="main-app" class="pb-24 lg:pb-12">
-        <!-- 首页头部 -->
-        <header id="home-section" class="max-w-7xl mx-auto px-6 pt-6">
-            <div class="emerald-gradient rounded-[2.5rem] p-10 lg:p-16 text-white relative overflow-hidden shadow-2xl shadow-emerald-100">
+    <!-- 3. SPA 视图容器 -->
+    <main id="main-content" class="flex-grow pb-24 lg:pb-12">
+        
+        <!-- 📱 视图 A: 首页列表 -->
+        <section id="view-home" class="view-section view-active max-w-7xl mx-auto px-6 pt-6">
+            <div class="emerald-gradient rounded-[3rem] p-10 lg:p-20 text-white relative overflow-hidden shadow-2xl mb-12">
                 <div class="relative z-10 max-w-lg">
-                    <h2 class="text-4xl lg:text-5xl font-black mb-4 tracking-tighter leading-none">你好, <span id="user-name" class="text-emerald-300 underline decoration-emerald-500/30">Founder</span></h2>
-                    <p class="text-emerald-50/70 text-lg mb-10 leading-relaxed font-medium">今天的跨境情报已更新。利用 AI SOP 快速锁定欧洲精准买家。</p>
-                    <div class="flex flex-wrap gap-4">
-                        <button class="bg-white text-emerald-900 px-6 md:px-10 py-4 rounded-2xl font-bold text-sm md:text-base hover:bg-emerald-50 shadow-2xl shadow-emerald-900/20 active:scale-95 transition flex items-center gap-3">
-                            <i class="fas fa-play-circle text-emerald-600 text-xl"></i>
-                            <span>学习黑科技 (+50)</span>
-                        </button>
-                        <button onclick="handleDownloadSOP()" class="bg-emerald-800/40 backdrop-blur-md text-white border border-white/10 px-6 md:px-10 py-4 rounded-2xl font-bold text-sm md:text-base hover:bg-emerald-800/60 active:scale-95 transition flex items-center gap-3">
-                            <i class="fas fa-file-download text-emerald-300 text-xl"></i>
-                            <span>领取 AI SOP (-100)</span>
+                    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-xs font-bold mb-6">
+                        <span class="w-2 h-2 bg-emerald-400 rounded-full animate-ping"></span>
+                        实时情报已更新
+                    </div>
+                    <h2 class="text-5xl lg:text-7xl font-black mb-6 tracking-tighter leading-[0.9]">
+                        Hi, <span id="welcome-name" class="text-emerald-300">Founder</span>
+                    </h2>
+                    <p class="text-emerald-50/70 text-lg max-w-md mb-10 font-medium leading-relaxed">分享跨境获客黑科技换取积分，快速锁定东南亚与欧洲的精准买家。</p>
+                    <div class="flex flex-wrap items-center gap-4">
+                        <button onclick="switchView('sop')" class="bg-white text-emerald-950 px-8 py-4 rounded-2xl font-bold text-base hover:bg-emerald-50 shadow-2xl active:scale-95 transition flex items-center gap-3">
+                            <i class="fas fa-file-download text-emerald-600 text-xl"></i>
+                            <span>领取 AI 获客 SOP (-100)</span>
                         </button>
                     </div>
                 </div>
-                <div class="absolute -top-10 -right-10 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-                <div class="absolute -bottom-10 -right-20 p-20 opacity-10">
-                    <i class="fas fa-globe-europe text-[20rem]"></i>
+                <div class="absolute top-0 right-0 p-10 opacity-10">
+                    <i class="fas fa-globe-asia text-[25rem]"></i>
                 </div>
             </div>
-            
-            <!-- 搜索与筛选 -->
-            <div class="mt-12 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div>
-                    <h3 class="text-2xl font-black text-slate-900 flex items-center gap-3 tracking-tight">
-                        <span class="w-1.5 h-6 bg-emerald-600 rounded-full"></span>
-                        资源集散池
-                    </h3>
-                </div>
-                <div class="relative w-full md:w-80 group">
-                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-emerald-500 transition"></i>
-                    <input id="global-search" type="text" placeholder="搜索 PHA, AI, 货盘..." class="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 bg-white shadow-sm outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition font-medium">
-                </div>
-            </div>
-            
-            <!-- 列表流 -->
-            <div id="post-feed" class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10">
-                <!-- 加载占位 -->
-                <div class="animate-pulse bg-slate-50 h-64 rounded-[2.5rem]"></div>
-                <div class="animate-pulse bg-slate-50 h-64 rounded-[2.5rem]"></div>
-            </div>
-        </header>
 
-        <!-- 发布页面 -->
-        <section id="post-section" class="hidden max-w-2xl mx-auto px-6 pt-10 pb-20">
-            <div class="bg-white rounded-[3rem] p-10 shadow-2xl border border-slate-50">
-                <h3 class="text-3xl font-black mb-10 text-slate-900 flex items-center gap-3 tracking-tighter">
-                    <i class="fas fa-plus-circle text-emerald-600"></i>
-                    共享您的价值
-                </h3>
+            <!-- 动态统计 -->
+            <div class="flex flex-wrap items-center gap-4 mb-10">
+                <div class="bg-white px-5 py-3 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600"><i class="fas fa-building"></i></div>
+                    <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">入驻企业</p><p class="text-xl font-black text-slate-800">520+</p></div>
+                </div>
+                <div class="bg-white px-5 py-3 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-500"><i class="fas fa-bolt"></i></div>
+                    <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">今日新增</p><p class="text-xl font-black text-slate-800">24+</p></div>
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+                <h3 class="text-3xl font-black text-slate-900 tracking-tighter">资源大厅</h3>
+                <div class="relative w-full md:w-96 group">
+                    <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-emerald-500 transition"></i>
+                    <input id="global-search" type="text" placeholder="输入关键词检索..." class="w-full pl-14 pr-6 py-5 rounded-[2rem] bg-white border border-slate-100 shadow-sm outline-none focus:ring-4 focus:ring-emerald-500/10 transition font-bold">
+                </div>
+            </div>
+
+            <div id="post-feed" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="animate-pulse bg-white h-80 rounded-[3rem] border border-slate-100"></div>
+                <div class="animate-pulse bg-white h-80 rounded-[3rem] border border-slate-100"></div>
+            </div>
+        </section>
+
+        <!-- 📄 视图 C: SOP 专题下载页 -->
+        <section id="view-sop" class="view-section max-w-4xl mx-auto px-6 pt-10">
+            <button onclick="switchView('home')" class="text-slate-400 hover:text-emerald-600 font-bold flex items-center gap-2 mb-8 transition">
+                <i class="fas fa-arrow-left"></i> 返回大厅
+            </button>
+            <div class="bg-white rounded-[3rem] overflow-hidden shadow-2xl border border-slate-50">
+                <div class="emerald-gradient p-12 text-center text-white">
+                    <div class="w-20 h-20 bg-white/20 rounded-3xl flex items-center justify-center mx-auto mb-6 backdrop-blur-md">
+                        <i class="fas fa-robot text-4xl"></i>
+                    </div>
+                    <h2 class="text-4xl font-black mb-4">AI 获客全流程 SOP</h2>
+                    <p class="text-emerald-100 opacity-80">一套可以直接复刻的跨境买家自动化采集方案</p>
+                </div>
+                <div class="p-10 lg:p-16">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-10 mb-12">
+                        <div class="space-y-6">
+                            <h4 class="font-black text-emerald-600 uppercase tracking-widest text-sm">核心价值</h4>
+                            <ul class="space-y-4 text-slate-600 font-medium text-sm">
+                                <li class="flex items-start gap-3"><i class="fas fa-check-circle mt-1 text-emerald-500"></i> 零成本爬取领英/谷歌潜在客户信息</li>
+                                <li class="flex items-start gap-3"><i class="fas fa-check-circle mt-1 text-emerald-500"></i> AI 自动撰写极高回复率的开发信</li>
+                                <li class="flex items-start gap-3"><i class="fas fa-check-circle mt-1 text-emerald-500"></i> WhatsApp 自动化批量触达技术拆解</li>
+                            </ul>
+                        </div>
+                        <div class="bg-slate-50 p-8 rounded-[2rem]">
+                            <h4 class="font-black text-slate-400 uppercase tracking-widest text-[10px] mb-4 text-center">下载权益</h4>
+                            <div class="flex items-center justify-between border-b border-slate-200 pb-4 mb-4">
+                                <span class="text-slate-500 font-bold text-sm">消耗积分</span>
+                                <span class="text-emerald-600 font-black text-xl">100 Pts</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-500 font-bold text-sm">当前余额</span>
+                                <span id="sop-current-balance" class="text-slate-900 font-black text-xl">----</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="handleDownloadSOP()" class="w-full bg-slate-900 text-white py-6 rounded-3xl font-black text-xl hover:bg-emerald-600 transition shadow-2xl active:scale-95 flex items-center justify-center gap-3">
+                        <i class="fas fa-cloud-download-alt"></i> 立即领取并下载 (.doc)
+                    </button>
+                    <p class="text-center text-slate-400 text-[10px] uppercase tracking-widest mt-6 font-bold">注册立领 1250 积分 · 登录即可免费解锁</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ➕ 视图 B: 独立发布页 -->
+        <section id="view-post" class="view-section max-w-3xl mx-auto px-6 pt-10">
+            <div class="bg-white rounded-[3rem] p-10 lg:p-14 shadow-2xl border border-slate-50">
+                <div class="flex items-center justify-between mb-12">
+                    <h3 class="text-3xl font-black text-slate-900 tracking-tighter">发布资源</h3>
+                    <button onclick="switchView('home')" class="text-slate-300 hover:text-slate-500 transition"><i class="fas fa-times text-2xl"></i></button>
+                </div>
                 <div class="space-y-6">
                     <div class="flex p-1.5 bg-slate-50 rounded-2xl border border-slate-100">
-                        <button id="intent-supply" onclick="setIntent('supply')" class="flex-1 py-3 rounded-xl font-bold text-sm transition-all duration-300 bg-emerald-600 text-white shadow-lg">我有资源</button>
-                        <button id="intent-demand" onclick="setIntent('demand')" class="flex-1 py-3 rounded-xl font-bold text-sm transition-all duration-300 text-slate-400 hover:text-slate-600">我有需求</button>
+                        <button id="post-supply" onclick="setPostIntent('supply')" class="flex-1 py-3 rounded-xl font-bold text-sm bg-emerald-600 text-white shadow-lg transition-all">提供资源</button>
+                        <button id="post-demand" onclick="setPostIntent('demand')" class="flex-1 py-3 rounded-xl font-bold text-sm text-slate-400 transition-all">寻找需求</button>
                     </div>
                     <div>
-                        <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 px-1">标题</label>
-                        <input id="p-title" type="text" placeholder="例如: 欧洲站 PHA 包装供应商名录" class="w-full px-6 py-4 rounded-2xl border border-slate-50 bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500 transition font-bold">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">资源标题</label>
+                        <input id="p-title" type="text" placeholder="例如: 欧洲 PHA 环保包装供应商名录" class="w-full px-6 py-4 rounded-2xl bg-slate-50 border-none outline-none focus:ring-2 focus:ring-emerald-500 transition font-bold text-slate-700">
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 px-1">领域</label>
-                            <select id="p-category" class="w-full px-6 py-4 rounded-2xl border border-slate-50 bg-slate-50 outline-none font-bold">
-                                <option>AI 获客</option>
-                                <option>行业情报</option>
-                                <option>实物资源</option>
-                                <option>物流仓储</option>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">所属分类</label>
+                            <select id="p-category" class="w-full px-6 py-4 rounded-2xl bg-slate-50 border-none outline-none font-bold text-slate-700">
+                                <option>环保材料</option><option>AI 工具</option><option>跨境物流</option><option>海外营销</option><option>其他</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 px-1">解锁价格</label>
-                            <input id="p-price" type="number" value="10" class="w-full px-6 py-4 rounded-2xl border border-slate-50 bg-slate-50 outline-none font-bold">
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">解锁价格</label>
+                            <input id="p-price" type="number" value="10" class="w-full px-6 py-4 rounded-2xl bg-slate-50 border-none outline-none font-bold text-slate-700">
                         </div>
                     </div>
                     <div>
-                        <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 px-1">图片预览</label>
-                        <div class="flex items-center gap-4">
-                            <label class="w-20 h-20 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-300 cursor-pointer hover:border-emerald-400 hover:text-emerald-400 transition overflow-hidden">
-                                <input id="p-image" type="file" accept="image/*" class="hidden" onchange="previewImage(this)">
-                                <i id="p-image-placeholder" class="fas fa-camera text-xl"></i>
-                                <img id="p-image-preview" class="hidden w-full h-full object-cover">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">详情描述</label>
+                        <textarea id="p-desc" placeholder="请详细描述资源的核心价值点，吸引用户解锁..." class="w-full px-6 py-4 rounded-2xl bg-slate-50 border-none outline-none h-32 font-medium text-slate-600 leading-relaxed"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">联系方式 (公开)</label>
+                        <input id="p-contact" type="text" placeholder="微信 / Email / WhatsApp" class="w-full px-6 py-4 rounded-2xl bg-slate-50 border-none outline-none font-bold text-slate-700">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">图片预览</label>
+                        <div class="flex items-center gap-6">
+                            <label class="w-24 h-24 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-300 cursor-pointer hover:border-emerald-400 hover:text-emerald-400 transition overflow-hidden shadow-inner">
+                                <input id="p-file" type="file" class="hidden" onchange="previewPostImage(this)">
+                                <i id="p-icon" class="fas fa-camera text-2xl"></i>
+                                <img id="p-preview" class="hidden w-full h-full object-cover">
                             </label>
-                            <p class="text-[10px] text-slate-400 leading-tight">上传实拍图或封面<br>提升解锁率 50%</p>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed">上传实拍图或封面<br>可提升 80% 解锁几率</p>
                         </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 px-1">公开详情</label>
-                        <textarea id="p-desc" placeholder="描述资源核心卖点..." class="w-full px-6 py-4 rounded-2xl border border-slate-50 bg-slate-50 outline-none h-32 font-medium"></textarea>
+                    <div class="bg-emerald-50/50 p-8 rounded-[2rem] border border-emerald-100/50">
+                        <label class="block text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-3 px-1 flex items-center gap-2"><i class="fas fa-lock"></i> 隐藏内容 (解锁后可见)</label>
+                        <textarea id="p-hidden" placeholder="放置下载链接、具体微信号等隐私内容..." class="w-full px-6 py-4 rounded-2xl bg-white border border-emerald-100 outline-none h-24 font-bold text-emerald-800 shadow-inner"></textarea>
                     </div>
-                    <div class="bg-emerald-50/50 p-6 rounded-3xl border border-emerald-100">
-                        <label class="block text-xs font-black text-emerald-600 uppercase tracking-widest mb-2 px-1 flex items-center gap-2">
-                            <i class="fas fa-lock"></i> 隐藏核心信息 (解锁后可见)
-                        </label>
-                        <textarea id="p-hidden" placeholder="联系方式、下载链接等..." class="w-full px-6 py-4 rounded-2xl border border-emerald-100 bg-white outline-none h-24 text-emerald-800 font-bold shadow-inner"></textarea>
-                    </div>
-                    <button id="p-submit" class="w-full bg-slate-900 text-white py-6 rounded-[2rem] font-black text-lg hover:bg-emerald-600 active:scale-95 transition shadow-2xl mt-6 flex items-center justify-center gap-3">
-                        <i class="fas fa-paper-plane"></i>
-                        发布至资源池
-                    </button>
+                    <button id="submit-post-btn" class="w-full bg-slate-900 text-white py-6 rounded-3xl font-black text-lg hover:bg-emerald-600 shadow-2xl active:scale-95 transition mt-6">发布至资源池</button>
                 </div>
             </div>
         </section>
 
-        <!-- 个人资料页 -->
-        <section id="profile-section" class="hidden max-w-2xl mx-auto px-6 pt-10 pb-20">
-            <div class="bg-white rounded-[3rem] p-10 shadow-2xl border border-slate-50">
-                <div class="flex items-center gap-6 mb-12">
-                    <div class="w-24 h-24 bg-emerald-100 rounded-[2rem] flex items-center justify-center text-emerald-600 text-3xl font-black shadow-inner">S</div>
-                    <div>
-                        <h3 id="profile-name" class="text-3xl font-black text-slate-900 tracking-tighter">User</h3>
-                        <p class="text-emerald-600 font-bold text-sm uppercase tracking-widest flex items-center gap-2">
-                            <i class="fas fa-check-circle"></i> Verified
-                        </p>
+        <!-- 👤 视图 D: 个人中心 -->
+        <section id="view-profile" class="view-section max-w-5xl mx-auto px-6 pt-10">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-1 space-y-8">
+                    <div class="bg-white rounded-[3rem] p-10 shadow-2xl border border-slate-50 text-center">
+                        <div class="w-24 h-24 bg-emerald-100 rounded-[2rem] flex items-center justify-center text-emerald-600 text-3xl font-black mx-auto mb-6 shadow-inner">S</div>
+                        <h3 id="u-email" class="text-xl font-black text-slate-900 mb-2 truncate">User</h3>
+                        <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-100 mb-10"><i class="fas fa-medal"></i> Verified Member</div>
+                        <div class="bg-slate-50 p-8 rounded-[2rem] text-center shadow-inner">
+                            <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-2">当前积分余额</p>
+                            <p id="u-credits" class="text-4xl font-black text-emerald-600 tracking-tighter">----</p>
+                        </div>
+                        <button onclick="handleLogout()" class="w-full mt-10 py-5 rounded-2xl text-slate-400 font-bold text-xs hover:text-red-500 hover:bg-red-50 transition border border-dashed border-slate-200">退出账号</button>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-6 mb-12">
-                    <div class="bg-slate-50 p-8 rounded-3xl text-center">
-                        <p class="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-2">当前积分</p>
-                        <p id="profile-credits" class="text-3xl font-black text-emerald-600 tracking-tight">----</p>
+                <div class="lg:col-span-2 space-y-10">
+                    <div class="bg-white rounded-[3rem] p-10 lg:p-12 shadow-2xl border border-slate-50">
+                        <h4 class="text-2xl font-black mb-10 flex items-center justify-between tracking-tight">我的资源 <span id="my-post-count" class="text-xs bg-slate-100 px-4 py-1.5 rounded-full text-slate-400 font-bold">0</span></h4>
+                        <div id="my-posts-list" class="space-y-4"></div>
                     </div>
-                    <div class="bg-slate-50 p-8 rounded-3xl text-center">
-                        <p class="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-2">发布总数</p>
-                        <p id="profile-posts" class="text-3xl font-black text-slate-900 tracking-tight">--</p>
+                    <div class="bg-white rounded-[3rem] p-10 lg:p-12 shadow-2xl border border-slate-50">
+                        <h4 class="text-2xl font-black mb-10 tracking-tight">积分变动明细</h4>
+                        <div id="ledger-list" class="space-y-4"></div>
                     </div>
                 </div>
-                <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 px-1">变动记录</h4>
-                <div id="credit-history" class="space-y-4"></div>
-                <button onclick="logout()" class="w-full mt-10 py-5 rounded-2xl font-bold text-slate-400 hover:text-red-500 hover:bg-red-50 transition border border-dashed border-slate-200">退出登录</button>
             </div>
         </section>
-    </div>
 
-    <!-- 页脚信息 -->
-    <footer class="bg-slate-900 text-slate-400 py-12 px-6 pb-32 md:pb-12 border-t border-slate-800">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="mt-auto py-20 px-6 border-t border-white/5">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12">
             <div class="text-center md:text-left">
-                <div class="flex items-center justify-center md:justify-start gap-2 mb-4">
-                    <div class="w-6 h-6 bg-emerald-600 rounded flex items-center justify-center text-white">
-                        <i class="fas fa-leaf text-[10px]"></i>
-                    </div>
-                    <span class="text-xl font-black text-white tracking-tighter">Sharepool</span>
+                <div class="flex items-center justify-center md:justify-start gap-2 mb-6">
+                    <div class="w-8 h-8 bg-emerald-600 rounded-xl flex items-center justify-center text-white font-black"><i class="fas fa-leaf text-sm"></i></div>
+                    <span class="text-2xl font-black text-white tracking-tighter">Sharepool</span>
                 </div>
-                <p class="text-sm max-w-xs leading-relaxed">全球优质 B2B 跨境资源池，通过价值共享驱动生态增长。我们致力于构建最透明、高效的资源对接中心。</p>
+                <p class="text-slate-600 text-sm max-w-sm leading-relaxed mx-auto md:mx-0 font-medium">全球优质 B2B 跨境资源整合中心。致力于构建最透明、高效的全球资源共享枢纽。</p>
             </div>
-            <div class="flex flex-col items-center md:items-end gap-2">
-                <div class="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-600">
-                    © 2026 SHAREPOOL CENTER • HK
-                </div>
-                <div class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-700/50 flex items-center gap-1">
-                    <span class="w-4 h-[1px] bg-slate-800"></span>
+            <div class="flex flex-col items-center md:items-end gap-3">
+                <div class="text-[10px] font-bold uppercase tracking-[0.4em] text-slate-700">© 2026 SHAREPOOL CENTER • HK</div>
+                <div class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-800/60 flex items-center gap-2">
+                    <span class="w-6 h-[1px] bg-slate-800/40"></span>
                     Handcrafted by Jeremyou
                 </div>
             </div>
         </div>
     </footer>
 
-    <!-- 4. 底部导航栏 -->
-    <nav id="bottom-nav" class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-slate-100 safe-bottom z-[60] py-2 lg:hidden shadow-[0_-10px_30px_rgba(0,0,0,0.03)]">
+    <!-- 移动端底部导航 -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-slate-100 safe-bottom z-[100] py-3 lg:hidden shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
         <div class="max-w-7xl mx-auto px-10 flex items-center justify-between">
-            <button onclick="switchTab('home')" id="btn-home" class="flex flex-col items-center gap-1.5 p-2 transition-all text-emerald-600 scale-110">
-                <i class="fas fa-compass text-xl"></i>
-                <span class="text-[10px] font-black uppercase tracking-widest">Home</span>
-            </button>
-            <button onclick="switchTab('post')" id="btn-post" class="flex flex-col items-center gap-1.5 p-2 transition-all text-slate-300">
-                <i class="fas fa-plus-square text-xl"></i>
-                <span class="text-[10px] font-black uppercase tracking-widest">Post</span>
-            </button>
-            <button onclick="switchTab('profile')" id="btn-profile" class="flex flex-col items-center gap-1.5 p-2 transition-all text-slate-300">
-                <i class="fas fa-user-circle text-xl"></i>
-                <span class="text-[10px] font-black uppercase tracking-widest">Me</span>
-            </button>
+            <button onclick="switchView('home')" id="nav-home" class="flex flex-col items-center gap-1.5 p-2 text-emerald-600 transition-all"><i class="fas fa-compass text-xl"></i><span class="text-[9px] font-black uppercase tracking-widest">首页</span></button>
+            <button onclick="switchView('post')" id="nav-post" class="flex flex-col items-center gap-1.5 p-2 text-slate-300 transition-all"><i class="fas fa-plus-square text-xl"></i><span class="text-[9px] font-black uppercase tracking-widest">发布</span></button>
+            <button onclick="switchView('profile')" id="nav-profile" class="flex flex-col items-center gap-1.5 p-2 text-slate-300 transition-all"><i class="fas fa-user-circle text-xl"></i><span class="text-[9px] font-black uppercase tracking-widest">我的</span></button>
         </div>
     </nav>
 
-    <!-- 5. 解锁弹窗 -->
-    <div id="unlock-modal" class="hidden fixed inset-0 z-[100] flex items-end sm:items-center justify-center px-6 pb-6 transition-all duration-500">
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeUnlockModal()"></div>
-        <div id="unlock-modal-card" class="relative w-full max-w-sm bg-white rounded-[2.5rem] p-10 shadow-2xl border border-emerald-50 transform transition-all duration-300 translate-y-full">
-            <div class="text-center mb-10">
-                <div class="w-20 h-20 bg-amber-50 text-amber-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner">
-                    <i class="fas fa-lock text-3xl"></i>
-                </div>
-                <h3 class="text-2xl font-black text-slate-900 mb-2 tracking-tight">解锁高价值情报</h3>
-                <p id="unlock-cost-info" class="text-slate-400 text-sm">将从您的账户扣除积分</p>
-            </div>
-            <div class="bg-slate-50 rounded-2xl p-4 mb-8 flex items-center justify-between">
-                <span class="text-xs font-black text-slate-300 uppercase tracking-widest">当前余额</span>
-                <span id="current-balance" class="text-lg font-black text-slate-700">----</span>
-            </div>
-            <div class="space-y-3">
-                <button id="confirm-unlock-btn" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-bold text-lg hover:bg-emerald-600 transition shadow-xl">确认解锁</button>
-                <button onclick="closeUnlockModal()" class="w-full py-4 rounded-2xl text-slate-400 font-bold hover:bg-slate-50 transition">取消</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 6. 逻辑脚本 -->
     <script>
         const S_URL = 'https://crmhftdnuvafkkfxcoqo.supabase.co';
         const S_KEY = 'sb_publishable_cjl5u2QY2Xuenbf1Nb918g_m5N5Dnmh';
         const sbClient = supabase.createClient(S_URL, S_KEY);
 
-        let currentAuthUser = null;
-        let userCredits = 0;
-        let publishIntent = 'supply';
-        let currentPosts = [];
-        let base64Image = null;
+        let currentAuthUser = null, userCredits = 0, currentPosts = [], postIntent = 'supply', postBase64 = null;
 
         async function init() {
             const { data: { session } } = await sbClient.auth.getSession();
-            if (session) {
-                currentAuthUser = session.user;
-            }
-            
-            sbClient.auth.onAuthStateChange((event, session) => {
-                if (event === 'SIGNED_IN' && session) {
-                    currentAuthUser = session.user;
-                    hideLoginModal();
-                    renderApp();
-                } else if (event === 'SIGNED_OUT') {
-                    currentAuthUser = null;
-                    renderApp();
-                }
+            currentAuthUser = session ? session.user : null;
+            sbClient.auth.onAuthStateChange((_, session) => {
+                currentAuthUser = session ? session.user : null;
+                updateAuthUI();
             });
-
-            renderApp();
+            updateAuthUI();
+            fetchPosts();
         }
 
-        // --- AI SOP 下载逻辑 ---
-        async function handleDownloadSOP() {
-            if (!currentAuthUser) {
-                alert('注册立领 1250 积分，立减 100 积分即可解锁本 SOP');
-                showLoginModal();
-                return;
-            }
-
-            if (userCredits < 100) {
-                alert(`积分不足 (余额: ${userCredits})。领取 AI SOP 需要消耗 100 积分。您可以去发布资源赚取积分！`);
-                return;
-            }
-
-            if (confirm('确认消耗 100 积分领取 AI 获客 SOP 吗？')) {
-                try {
-                    // 1. 扣除积分
-                    const { error: updateError } = await sbClient
-                        .from('user_points')
-                        .update({ credits: userCredits - 100 })
-                        .eq('user_id', currentAuthUser.id);
-
-                    if (updateError) throw updateError;
-
-                    // 2. 记录流水
-                    const { error: ledgerError } = await sbClient
-                        .from('credit_ledger')
-                        .insert([{
-                            user_id: currentAuthUser.id,
-                            amount: -100,
-                            action_type: 'download_sop'
-                        }]);
-
-                    if (ledgerError) throw ledgerError;
-
-                    // 3. 触发下载
-                    alert('积分扣除成功！即将为您开启下载。');
-                    const link = document.createElement('a');
-                    link.href = 'https://github.com/jeremyou122/sharepool-app/raw/main/AISOP%E8%AF%95%E7%94%A8.doc';
-                    link.setAttribute('download', 'AISOP_Trial.doc');
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    
-                    // 4. 刷新余额
-                    fetchCredits();
-                    fetchHistory();
-                } catch (err) {
-                    alert('请求失败: ' + err.message);
-                }
-            }
-        }
-
-        function showLoginModal() {
-            document.getElementById('login-modal').classList.remove('hidden');
-            setTimeout(() => {
-                const box = document.getElementById('login-screen-box');
-                box.classList.replace('scale-95', 'scale-100');
-                box.classList.replace('opacity-0', 'opacity-100');
-            }, 10);
-            document.body.classList.add('modal-active');
-        }
-
-        function hideLoginModal() {
-            const box = document.getElementById('login-screen-box');
-            box.classList.replace('scale-100', 'scale-95');
-            box.classList.replace('opacity-100', 'opacity-0');
-            setTimeout(() => {
-                document.getElementById('login-modal').classList.add('hidden');
-            }, 200);
-            document.body.classList.remove('modal-active');
-        }
-
-        function renderApp() {
-            const guestBtn = document.getElementById('guest-login-btn');
-            const pointsPill = document.getElementById('points-pill');
-            const userAvatar = document.getElementById('user-avatar');
-            const nameEl = document.getElementById('user-name');
-            const profNameEl = document.getElementById('profile-name');
-
-            if (currentAuthUser) {
-                guestBtn.classList.add('hidden');
-                pointsPill.classList.remove('hidden');
-                userAvatar.classList.remove('hidden');
-                const displayName = currentAuthUser.email.split('@')[0];
-                nameEl.innerText = displayName;
-                profNameEl.innerText = displayName;
-            } else {
-                guestBtn.classList.remove('hidden');
-                pointsPill.classList.add('hidden');
-                userAvatar.classList.add('hidden');
-                nameEl.innerText = "Founder";
-            }
-            loadData();
-        }
-
-        async function loadData() {
-            if (currentAuthUser) {
-                await fetchCredits();
-                await fetchHistory();
-            }
-            await fetchPosts();
-        }
-
-        function switchTab(tabId) {
-            if ((tabId === 'post' || tabId === 'profile') && !currentAuthUser) {
-                showLoginModal();
-                return;
-            }
-            const sections = ['home', 'post', 'profile'];
-            sections.forEach(id => {
-                const el = document.getElementById(`${id}-section`);
-                el.classList.add('hidden');
-                const btn = document.getElementById(`btn-${id}`);
-                btn.classList.replace('text-emerald-600', 'text-slate-300');
-                btn.classList.remove('scale-110');
+        function switchView(viewId) {
+            if ((viewId === 'post' || viewId === 'profile') && !currentAuthUser) { showLoginModal(); return; }
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('view-active'));
+            document.getElementById(`view-${viewId}`).classList.add('view-active');
+            ['home', 'post', 'profile'].forEach(id => {
+                const btn = document.getElementById(`nav-${id}`);
+                if (id === viewId) { btn.classList.replace('text-slate-300', 'text-emerald-600'); }
+                else { btn.classList.replace('text-emerald-600', 'text-slate-300'); }
             });
-            document.getElementById(`${tabId}-section`).classList.remove('hidden');
-            const activeBtn = document.getElementById(`btn-${tabId}`);
-            activeBtn.classList.replace('text-slate-300', 'text-emerald-600');
-            activeBtn.classList.add('scale-110');
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (viewId === 'profile') loadProfileData();
+            if (viewId === 'sop') updateSOPUI();
         }
 
-        document.getElementById('global-search').addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
-            const filtered = currentPosts.filter(p => 
-                p.title.toLowerCase().includes(term) || 
-                p.description.toLowerCase().includes(term) ||
-                p.category.toLowerCase().includes(term)
-            );
-            renderPostList(filtered);
-        });
+        function updateAuthUI() {
+            const guestBtn = document.getElementById('guest-login-btn'), infoPill = document.getElementById('user-info-pill'), welcomeName = document.getElementById('welcome-name');
+            if (currentAuthUser) {
+                guestBtn.classList.add('hidden'); infoPill.classList.remove('hidden');
+                welcomeName.innerText = currentAuthUser.email.split('@')[0];
+                fetchUserCredits();
+            } else {
+                guestBtn.classList.remove('hidden'); infoPill.classList.add('hidden');
+                welcomeName.innerText = "Founder";
+            }
+        }
 
-        async function fetchCredits() {
+        async function fetchUserCredits() {
+            if(!currentAuthUser) return;
             const { data } = await sbClient.from('user_points').select('credits').eq('user_id', currentAuthUser.id).single();
             if (data) {
                 userCredits = data.credits;
-                document.getElementById('credit-count').innerText = userCredits.toLocaleString();
-                document.getElementById('profile-credits').innerText = userCredits.toLocaleString();
-                document.getElementById('current-balance').innerText = userCredits.toLocaleString();
+                document.getElementById('nav-credit-count').innerText = userCredits.toLocaleString();
+                if(document.getElementById('u-credits')) document.getElementById('u-credits').innerText = userCredits.toLocaleString();
+                if(document.getElementById('sop-current-balance')) document.getElementById('sop-current-balance').innerText = userCredits.toLocaleString();
             }
         }
-
-        async function fetchHistory() {
-            const { data } = await sbClient.from('credit_ledger').select('*').eq('user_id', currentAuthUser.id).order('created_at', { ascending: false });
-            if (data) {
-                const container = document.getElementById('credit-history');
-                container.innerHTML = data.map(item => `
-                    <div class="flex items-center justify-between p-4 bg-slate-50/50 rounded-2xl border border-slate-50">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 ${item.amount > 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'} rounded-xl flex items-center justify-center text-xs">
-                                <i class="fas ${item.amount > 0 ? 'fa-plus' : 'fa-minus'}"></i>
-                            </div>
-                            <div>
-                                <p class="text-sm font-bold text-slate-700">
-                                    ${item.action_type === 'signup_bonus' ? '初始奖励' : 
-                                      item.action_type === 'download_sop' ? '领取 AI SOP' : '积分变动'}
-                                </p>
-                                <p class="text-[10px] text-slate-300 font-bold">${new Date(item.created_at).toLocaleDateString()}</p>
-                            </div>
-                        </div>
-                        <span class="${item.amount > 0 ? 'text-emerald-600' : 'text-red-600'} font-black">${item.amount > 0 ? '+' : ''}${item.amount}</span>
-                    </div>
-                `).join('');
-            }
-        }
-
-        function setIntent(intent) {
-            publishIntent = intent;
-            const s = document.getElementById('intent-supply'), d = document.getElementById('intent-demand');
-            if (intent === 'supply') {
-                s.className = "flex-1 py-3 rounded-xl font-bold text-sm transition-all bg-emerald-600 text-white shadow-lg";
-                d.className = "flex-1 py-3 rounded-xl font-bold text-sm transition-all text-slate-400";
-            } else {
-                d.className = "flex-1 py-3 rounded-xl font-bold text-sm transition-all bg-blue-600 text-white shadow-lg";
-                s.className = "flex-1 py-3 rounded-xl font-bold text-sm transition-all text-slate-400";
-            }
-        }
-
-        function previewImage(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    base64Image = e.target.result;
-                    const pre = document.getElementById('p-image-preview');
-                    pre.src = base64Image;
-                    pre.classList.remove('hidden');
-                    document.getElementById('p-image-placeholder').classList.add('hidden');
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-
-        document.getElementById('p-submit').onclick = async () => {
-            const title = document.getElementById('p-title').value, cat = document.getElementById('p-category').value, price = parseInt(document.getElementById('p-price').value), desc = document.getElementById('p-desc').value, hidden = document.getElementById('p-hidden').value;
-            if(!title || !desc) return alert('请完整填写');
-            const { error } = await sbClient.from('posts').insert([{ user_id: currentAuthUser.id, title, category: cat, intent: publishIntent, description: desc, hidden_content: hidden, unlock_price: price, image_url: base64Image }]);
-            if (error) alert(error.message);
-            else { alert('✨ 资源同步成功'); location.reload(); }
-        };
 
         async function fetchPosts() {
             const { data } = await sbClient.from('posts').select('*').order('created_at', { ascending: false });
-            if (data) {
-                currentPosts = data;
-                document.getElementById('profile-posts').innerText = data.filter(p => p.user_id === currentAuthUser.id).length;
-                renderPostList(data);
-            }
+            if (data) { currentPosts = data; renderPostFeed(data); }
         }
 
-        function renderPostList(posts) {
-            const container = document.getElementById('post-feed');
-            if (posts.length === 0) {
-                container.innerHTML = '<div class="col-span-full text-center py-20 text-slate-300 font-bold uppercase tracking-widest">无资源</div>';
-                return;
-            }
-            container.innerHTML = posts.map(p => `
-                <div class="bg-white rounded-[2.5rem] overflow-hidden border border-slate-50 shadow-sm hover:shadow-md transition-all duration-500 group card-anim">
-                    ${p.image_url ? `<img src="${p.image_url}" class="w-full h-48 object-cover group-hover:scale-105 transition duration-700">` : ''}
+        function renderPostFeed(posts) {
+            const feed = document.getElementById('post-feed');
+            feed.innerHTML = posts.map(p => `
+                <div class="bg-white rounded-[3rem] overflow-hidden border border-slate-50 shadow-sm hover:shadow-md transition-all group card-anim">
+                    ${p.image_url ? `<img src="${p.image_url}" class="w-full h-52 object-cover group-hover:scale-105 transition duration-700">` : ''}
                     <div class="p-8">
                         <div class="flex justify-between items-center mb-6">
-                            <div class="flex gap-2">
-                                <span class="text-[10px] font-black px-3 py-1 rounded-full uppercase border ${p.intent === 'supply' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-blue-50 text-blue-600 border-blue-100'}">${p.intent === 'supply' ? '我有资源' : '需求'}</span>
-                                <span class="bg-slate-50 text-slate-400 text-[10px] font-black px-3 py-1 rounded-full uppercase border border-slate-100">${p.category}</span>
+                            <span class="text-[10px] font-black px-3 py-1 rounded-full uppercase border ${p.intent === 'supply' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-blue-50 text-blue-600 border-blue-100'}">${p.intent === 'supply' ? '提供资源' : '寻找需求'}</span>
+                            <div class="flex items-center gap-3 text-[10px] font-bold text-slate-300">
+                                <span><i class="fas fa-eye mr-1"></i> ${Math.floor(Math.random()*200)+50}</span>
+                                <span><i class="fas fa-key mr-1"></i> ${Math.floor(Math.random()*15)}</span>
                             </div>
-                            <span class="text-[10px] font-bold text-slate-300 uppercase">${new Date(p.created_at).toLocaleDateString()}</span>
                         </div>
-                        <h4 class="text-xl font-black mb-3 text-slate-900 group-hover:text-emerald-700 leading-tight">${p.title}</h4>
+                        <h4 class="text-xl font-black mb-3 text-slate-900 leading-tight">${p.title}</h4>
                         <p class="text-slate-400 text-sm leading-relaxed mb-8 line-clamp-2 ${currentAuthUser ? '' : 'blur-info'}">${p.description}</p>
-                        ${!currentAuthUser ? `<div class="text-[10px] font-bold text-emerald-600 mb-4 flex items-center gap-1.5 uppercase tracking-wider"><i class="fas fa-eye-slash"></i> 登录后可见</div>` : ''}
                         <div class="flex items-center justify-between pt-6 border-t border-slate-50">
                             <div class="flex items-center gap-2">
-                                <div class="w-6 h-6 rounded-lg bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-400 border border-slate-200 uppercase">${p.enterprise_name ? p.enterprise_name[0] : 'S'}</div>
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ${currentAuthUser ? '' : 'blur-info'}">${p.id.slice(0,8)}</span>
+                                <div class="w-6 h-6 bg-slate-100 rounded-lg flex items-center justify-center text-[10px] font-bold text-slate-400 border border-slate-100 uppercase">S</div>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${p.category}</span>
                             </div>
-                            <button onclick="openUnlockModal('${p.id}', ${p.unlock_price})" class="bg-slate-900 text-white px-5 py-2.5 rounded-xl font-bold text-xs hover:bg-emerald-600 transition shadow-lg flex items-center gap-2">
-                                <i class="fas fa-lock text-[10px]"></i> ${p.unlock_price} 解锁
+                            <button onclick="switchView('home')" class="bg-slate-900 text-white px-5 py-2.5 rounded-xl font-bold text-xs hover:bg-emerald-600 transition shadow-lg flex items-center gap-2">
+                                <i class="fas fa-lock text-[10px]"></i> ${p.unlock_price} 积分解锁
                             </button>
                         </div>
                     </div>
@@ -562,43 +374,101 @@
             `).join('');
         }
 
-        let targetPostId = null;
-        function openUnlockModal(postId, price) {
-            if (!currentAuthUser) return showLoginModal();
-            targetPostId = postId;
-            document.body.classList.add('modal-active');
-            document.getElementById('unlock-modal').classList.remove('hidden');
-            document.getElementById('unlock-cost-info').innerHTML = `扣除 <span class="text-emerald-600 font-black">${price}</span> 积分`;
-            document.getElementById('current-balance').innerText = userCredits.toLocaleString();
-            setTimeout(() => { document.getElementById('unlock-modal-card').classList.replace('translate-y-full', 'translate-y-0'); }, 10);
+        // --- 发布逻辑 ---
+        function setPostIntent(i) {
+            postIntent = i; const s = document.getElementById('post-supply'), d = document.getElementById('post-demand');
+            if(i === 'supply') { s.className = "flex-1 py-3 rounded-xl font-bold text-sm bg-emerald-600 text-white shadow-lg"; d.className = "flex-1 py-3 rounded-xl font-bold text-sm text-slate-400"; }
+            else { d.className = "flex-1 py-3 rounded-xl font-bold text-sm bg-blue-600 text-white shadow-lg"; s.className = "flex-1 py-3 rounded-xl font-bold text-sm text-slate-400"; }
         }
 
-        function closeUnlockModal() {
-            document.getElementById('unlock-modal-card').classList.replace('translate-y-0', 'translate-y-full');
-            setTimeout(() => { document.getElementById('unlock-modal').classList.add('hidden'); document.body.classList.remove('modal-active'); }, 300);
+        function previewPostImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    postBase64 = e.target.result;
+                    document.getElementById('p-preview').src = postBase64;
+                    document.getElementById('p-preview').classList.remove('hidden');
+                    document.getElementById('p-icon').classList.add('hidden');
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
         }
 
-        document.getElementById('confirm-unlock-btn').onclick = () => {
-            if (userCredits < 10) return alert('积分不足');
-            alert('解锁成功！\n敏感信息已在详情页可见。');
-            closeUnlockModal();
+        document.getElementById('submit-post-btn').onclick = async () => {
+            const t = document.getElementById('p-title').value, c = document.getElementById('p-category').value, p = parseInt(document.getElementById('p-price').value), d = document.getElementById('p-desc').value, cont = document.getElementById('p-contact').value, h = document.getElementById('p-hidden').value;
+            if(!t || !d) return alert('标题与详情不能为空');
+            const { error } = await sbClient.from('posts').insert([{ 
+                user_id: currentAuthUser.id, title: t, category: c, intent: postIntent, description: d, contact_info: cont, hidden_content: h, unlock_price: p || 10, image_url: postBase64 
+            }]);
+            if (error) alert(error.message); else { alert('🎉 发布成功！'); switchView('home'); fetchPosts(); }
         };
 
+        // --- SOP 逻辑 ---
+        function updateSOPUI() {
+            if(document.getElementById('sop-current-balance')) document.getElementById('sop-current-balance').innerText = userCredits.toLocaleString();
+        }
+
+        async function handleDownloadSOP() {
+            if(!currentAuthUser) { showLoginModal(); return; }
+            if(userCredits < 100) return alert('积分不足 (需 100 积分)');
+            if(confirm('确认扣除 100 积分领取 AI SOP？')) {
+                const { error: updErr } = await sbClient.from('user_points').update({ credits: userCredits - 100 }).eq('user_id', currentAuthUser.id);
+                if(updErr) return alert(updErr.message);
+                await sbClient.from('credit_ledger').insert([{ user_id: currentAuthUser.id, amount: -100, action_type: 'download_sop' }]);
+                const a = document.createElement('a'); a.href = 'https://github.com/jeremyou122/sharepool-app/raw/main/AISOP%E8%AF%95%E7%94%A8.doc'; a.download = 'AISOP_Trial.doc'; a.click();
+                fetchUserCredits(); alert('扣费成功，下载已启动！');
+            }
+        }
+
+        // --- 个人中心逻辑 ---
+        async function loadProfileData() {
+            if(!currentAuthUser) return;
+            document.getElementById('u-email').innerText = currentAuthUser.email;
+            const { data: posts } = await sbClient.from('posts').select('*').eq('user_id', currentAuthUser.id).order('created_at', { ascending: false });
+            const { data: ledger } = await sbClient.from('credit_ledger').select('*').eq('user_id', currentAuthUser.id).order('created_at', { ascending: false });
+            
+            document.getElementById('my-post-count').innerText = posts ? posts.length : 0;
+            document.getElementById('my-posts-list').innerHTML = posts && posts.length ? posts.map(p => `
+                <div class="flex items-center justify-between p-5 bg-slate-50 rounded-2xl border border-slate-100 shadow-inner">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-emerald-600 font-black shadow-sm text-lg">${p.category[0]}</div>
+                        <div><p class="font-bold text-slate-700 truncate max-w-[150px] leading-tight">${p.title}</p><p class="text-[9px] text-slate-300 font-bold uppercase mt-1 tracking-widest">${p.category}</p></div>
+                    </div>
+                    <button onclick="deletePost('${p.id}')" class="w-10 h-10 rounded-xl bg-white text-slate-300 hover:text-red-500 hover:bg-red-50 transition border border-slate-100 flex items-center justify-center shadow-sm"><i class="fas fa-trash-alt text-xs"></i></button>
+                </div>
+            `).join('') : '<p class="text-center py-10 text-slate-300 font-bold uppercase tracking-widest text-[10px]">暂无发布记录</p>';
+
+            document.getElementById('ledger-list').innerHTML = ledger && ledger.length ? ledger.map(l => `
+                <div class="flex items-center justify-between p-5 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div>
+                        <p class="text-sm font-bold text-slate-700">${l.action_type === 'signup_bonus' ? '注册福利' : l.action_type === 'download_sop' ? '领取 AI SOP' : '资源变现'}</p>
+                        <p class="text-[9px] text-slate-300 font-bold mt-1 tracking-widest">${new Date(l.created_at).toLocaleDateString()}</p>
+                    </div>
+                    <span class="${l.amount > 0 ? 'text-emerald-600' : 'text-red-500'} font-black tracking-tighter">${l.amount > 0 ? '+' : ''}${l.amount}</span>
+                </div>
+            `).join('') : '<p class="text-center py-10 text-slate-300 font-bold uppercase tracking-widest text-[10px]">暂无变动明细</p>';
+        }
+
+        async function deletePost(id) {
+            if(confirm('彻底删除该资源？此操作无法撤销。')) {
+                const { error } = await sbClient.from('posts').delete().eq('id', id);
+                if(error) alert(error.message); else { alert('删除成功'); loadProfileData(); fetchPosts(); }
+            }
+        }
+
+        // --- 基础 Auth/Modal ---
+        function showLoginModal() { document.getElementById('login-modal').classList.remove('hidden'); setTimeout(() => { const box = document.getElementById('login-screen-box'); box.classList.replace('scale-95', 'scale-100'); box.classList.replace('opacity-0', 'opacity-100'); }, 10); }
+        function hideLoginModal() { document.getElementById('login-modal').classList.add('hidden'); }
         document.getElementById('auth-btn').onclick = async () => {
-            const email = document.getElementById('email').value, password = document.getElementById('password').value;
-            if(!email || !password) return alert('请填入邮箱和密码');
+            const email = document.getElementById('login-email').value, password = document.getElementById('login-password').value;
+            if(!email || !password) return alert('邮箱密码不能为空');
             const { data, error } = await sbClient.auth.signInWithPassword({ email, password });
             if (error) {
                 const { data: sData, error: sError } = await sbClient.auth.signUp({ email, password });
-                if (sError) alert(sError.message);
-                else { currentAuthUser = sData.user; renderApp(); }
-            } else { currentAuthUser = data.user; renderApp(); }
+                if (sError) alert(sError.message); else { updateAuthUI(); hideLoginModal(); alert('注册成功，已自动登录！'); }
+            } else { updateAuthUI(); hideLoginModal(); }
         };
-
-        async function logout() { await sbClient.auth.signOut(); location.reload(); }
-
-        function toggleHistory() { switchTab('profile'); }
-        function toggleProfile() { switchTab('profile'); }
+        async function handleLogout() { await sbClient.auth.signOut(); location.reload(); }
 
         init();
     </script>
